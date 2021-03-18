@@ -3,7 +3,7 @@
 
 import socket
 
-host = '192.168.0.106'
+host = '192.168.1.1'
 
 def is_port_open(host, port):
     s = socket.socket()
