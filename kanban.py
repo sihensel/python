@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 '''
 todo-app that uses a kanban principle
 
