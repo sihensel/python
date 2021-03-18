@@ -1,0 +1,44 @@
+{
+    "backlog": [
+        {
+            "task": "do_sth_else",
+            "due": "03.01.1998"
+        },
+        {
+            "task": "do_sth_else",
+            "due": "03.10.2020"
+        },
+        {
+            "task": "do_sth",
+            "due": "02.01.2021"
+        },
+        {
+            "task": "GPM M3",
+            "due": "18.02.2021"
+        },
+        {
+            "task": "UXD",
+            "due": "21.03.2021"
+        },
+        {
+            "task": "123819",
+            "due": "12.02.2382"
+        }
+    ],
+    "inProgress": [
+        {
+            "task": "Rewe Bericht",
+            "due": "20.02.2021"
+        }
+    ],
+    "done": [
+        {
+            "task": "SW-Projekt",
+            "due": "10.02.2021"
+        },
+        {
+            "task": "PM Kollo",
+            "due": "12.02.2021"
+        }
+    ]
+}
