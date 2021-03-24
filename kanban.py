@@ -1,22 +1,20 @@
 #!/usr/bin/env python3
 
 '''
-todo-app that uses a kanban principle
+todo-app that uses the kanban principle
 
-There will be 3 areas:
-    - backlog
-    - in progress
-    - done
+currrently not using curses.wrapper(), the corresponding parts are commented out
 
 Features to add:
 - config file
 - encryption of saved files
 '''
 
+import sys
 import curses
+import traceback
 import json
 from datetime import datetime
-import sys
 
 
 ''' DEFINE KEYBINDINGS HERE '''
@@ -24,6 +22,7 @@ vim = False     # set vim-keybindings
 
 # check config file for custom key bindings first
 if vim:
+    # redo this
     CMD_LOAD_FILE = 'e'  # edit
     CMD_HELP = 'l'  # list ???
     CMD_UP = 'k'
@@ -31,22 +30,20 @@ if vim:
     CMD_LEFT = 'h'
     CMD_RIGHT = 'l'
     CMD_INSERT = 'i'
-    CMD_DELETE = 'd'
+    CMD_DELETE = 'x'
     CMD_SAVE = 'w'
     CMD_QUIT = 'q'
 else:
-    CMD_LOAD_FILE = 'o'
-    CMD_HELP = 'h'
-    CMD_UP = 'KEY_UP'
-    CMD_DOWN = 'KEY_DOWN'
-    CMD_LEFT = 'KEY_LEFT'
-    CMD_RIGHT = 'KEY_RIGHT'
-    CMD_INSERT = 'i'
-    CMD_INSERT_BELOW = 'o'
-    CMD_INSERT_ABOVE = 'O'
-    CMD_DELETE = 'x'
-    CMD_SAVE = 's'
     CMD_QUIT = 'q'
+    CMD_READ = 'r'
+    CMD_WRITE = 'w'
+    #CMD_UP = 'KEY_UP'
+    #CMD_DOWN = 'KEY_DOWN'
+    #CMD_LEFT = 'KEY_LEFT'
+    #CMD_RIGHT = 'KEY_RIGHT'
+    CMD_ADD = 'a'
+    CMD_DELETE = 'd'
+    CMD_SAVE = 's'
 
 #is_window = False
 
@@ -59,14 +56,16 @@ class kanban:
         self.done = []
         self.file_path = '/home/simon/python/curses-test.json'
 
-    # read from JSON file
-    def read_file(self):
 
-        with open(self.file_path, 'r') as file:
+
+    # read from JSON file
+    def read_file(self, filepath='/home/simon/python/curses-test.json'):
+
+        with open(filepath, 'r') as file:
             self.data = json.load(file)
             self.backlog, self.inProgress, self.done = self.data[
                 'backlog'], self.data['inProgress'], self.data['done']
-
+        
     # write data to JSON file
     def write_file(self):
 
@@ -167,87 +166,95 @@ class kanban:
 
         print((max_len * 3 + 6)* '-')
 
+# ------------------ CURSES ----------------------
+
+    def main(self):
+        #curses.wrapper(self.set_screen)
+        #curses.wrapper(self.init_screen)
+
+        self.stdscr = curses.initscr()
+
+        curses.noecho()
+        curses.cbreak()
+        self.stdscr.keypad(True)
+
+        try:
+            self.init_screen()
+        except:
+            # exception handler here
+            traceback.print_exc()
+        finally:
+            self.stdscr.keypad(False)
+            curses.echo()
+            curses.nocbreak()
+            curses.endwin()
+            #sys.exit()
+
+    def init_screen(self):  #, stdscr):
+
+        #self.stdscr = stdscr
+
+        self.height, self.width = self.stdscr.getmaxyx()
+
+        # draw screen
+        self.stdscr.clear()
+        self.stdscr.addstr(0, 0, '---KANBAN PLANNING TOOL---', curses.A_BOLD)
+        #self.stdscr.addstr(1, 0, f'Please enter a command (\'{CMD_HELP}\' for help, \'{CMD_QUIT}\' to quit).')
+        self.stdscr.addstr(self.height -1, 0, f'({CMD_QUIT})uit | ({CMD_READ})ead file | ({CMD_WRITE})rite to file | ({CMD_ADD})dd task | ({CMD_DELETE})elete task')
+        self.stdscr.refresh()
+#        self.stdscr.getkey()
+
+        cmd = None
+        while cmd not in ['q', 'Q']:
+            cmd = self.stdscr.getkey()
+            
+            if cmd == CMD_READ:
+                self.read_file()
+            elif cmd == 't':
+                self.new_show()
+            #else:
+            #    continue
+
+    def display_help(self):#, stdscr):
+        # display help permanently later
+        
+        self.stdscr.addstr(3, 0, f'{CMD_HELP} - add new task')
+        self.stdscr.addstr(4, 0, f'{CMD_DELETE} - delete selected task')
+        self.stdscr.addstr(5, 0, f'{CMD_SAVE} - save kanban list to file')
+        self.stdscr.addstr(6, 0, f'{CMD_QUIT} - quit')
+        self.stdscr.addstr(8, 0, 'Press any key to continue...')
+        self.stdscr.refresh()
+        self.stdscr.getkey()
+
+        self.init_screen()
+        #curses.wrapper(self.init_screen)
+
+    def new_show(self):
+        # make size of board dependent on longest list later
+        self.board = curses.newwin(25, 75, 3, 0)
+        self.board.border()
+        #self.board.addstr(0, 0, self.backlog[0]['task'])   # don't forget to read file first!
+        self.board.addstr(1, 2, 'BACKLOG | IN PROGRESS | DONE')
+        self.board.refresh()
+
+
 
 ''' LABS KEY TESTING AREA '''
 
-obj1 = kanban()
-obj1.read_file()
-#obj1.add_task('do_sth_else', '03.01.1998')
-# obj1.move_progress(1)
-# obj1.move_done(0)
-
-obj1.show()
-# obj1.write_file()
-# print(obj1.data)
-
-
-def main(stdscr):
-
-    # remove later, this is just so intellisense dsplays the documentation
-    #stdscr = curses.initscr()
-    tasklist = kanban()
-    tasklist.read_file()
-
-    height, width = stdscr.getmaxyx()
-    if height < 50 or width < 50:
-        print('Your terminal is too small, please resize it.')
-        sys.exit()
-    
-    def initialize():
-        stdscr.clear()
-        stdscr.refresh()
-        stdscr.addstr(0, 0, '---KANBAN PLANNING TOOL---', curses.A_BOLD)
-        stdscr.addstr(1, 0, f'Please enter a command (\'{CMD_HELP}\' for help, \'{CMD_QUIT}\' to quit).')
-        stdscr.addstr(2, 0, tasklist.backlog[0]['task'])
-        stdscr.addstr(height -1, 0,  'STATUS BAR')
-        stdscr.refresh()
-
-    def display_help():
-        stdscr.addstr(3, 0, f'{CMD_HELP} - add new task')
-        stdscr.addstr(4, 0, f'{CMD_DELETE} - delete selected task')
-        stdscr.addstr(5, 0, f'{CMD_SAVE} - save kanban list to file')
-        stdscr.addstr(6, 0, f'{CMD_QUIT} - quit')
-        stdscr.addstr(8, 0, 'Press any key to continue...')
-        stdscr.refresh()
-        stdscr.getkey()
-
-        initialize()
-
-    
-    initialize()
-    cmd = None
-    # ord() returns the unicode of a caracter
-    # chr() returns the caracter matching a unicode
-    # stdscr.getch() returns the unicode of a pressed character
-    while (cmd != 'q'):
-        cmd = stdscr.getkey()
-
-        if cmd == CMD_HELP:
-            display_help()
-
-        elif cmd == CMD_RIGHT:
-            pass
-        else:
-            continue
-    sys.exit()
-
-
 if __name__ == '__main__':
-    curses.wrapper(main)
+
+    # curses.wrapper(main)
+
+    testlist = kanban()
+    testlist.main()
+    print(testlist.data)
+    #print(testlist.backlog)
+    #print(testlist.inProgress)
+    #print(testlist.done)
 
 # -----------------------------------------
 # MAKE THIS EOF LATER !!!
 
-'''
-# initialize screen
-stdscr = curses.initscr()
-
-# set tui parameters
-curses.noecho()
-curses.cbreak()
-stdscr.keypad(True)
-
-'''
 
 '''
 def initialize():
