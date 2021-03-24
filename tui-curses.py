@@ -4,6 +4,7 @@
 import curses
 from curses import wrapper
 
+'''
 # the standard screen (named after the C variable)
 stdscr = curses.initscr()
 
@@ -37,3 +38,37 @@ curses.endwin()
 print(cmd)
 print(cmd2)
 print(curses.KEY_RIGHT)
+
+'''
+
+
+def main():
+    stdscr = curses.initscr()
+
+    # turn off character output and allow input without pressing enter
+    curses.noecho()
+    curses.cbreak()
+
+    # turn off echoing of keys and allow input without pressing enter
+    # allow input from the keypad
+    stdscr.keypad(True)
+
+    stdscr.addstr(0,0, 'Hello World', curses.A_BOLD)
+    stdscr.refresh()
+    stdscr.getkey()
+
+    try:
+        i = 10/0
+    except:
+        raise ZeroDivisionError
+    finally:
+        curses.echo()
+        curses.nocbreak()
+
+        # turn off echoing of keys and allow input without pressing enter
+        # allow input from the keypad
+        stdscr.keypad(False)
+        curses.endwin()
+
+
+main()
