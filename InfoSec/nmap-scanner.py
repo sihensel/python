@@ -18,8 +18,8 @@ scanner = nmap.PortScanner()
 
 print('--- Small Python nmap automation script ---')
 
-#ip_addr = input('Please enter the IP to scan: ')
-ip_addr = '192.168.1.1'
+ip_addr = input('Please enter the IP to scan: ')
+#ip_addr = '192.168.1.1'
 ports = '1-1024'    # maybe make this interactive in the future
 
 
