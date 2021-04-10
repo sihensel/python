@@ -1,12 +1,11 @@
-# script to rename multiple files (in the same manner)
+# script to rename multiple files
 
 import os
 
 def main():
 
-    #filepath = r'C:\Users\me\Music'
+    filepath = r'C:\Users\me\Music'
     #filepath = r'D:\Music'
-    filepath = r'C:\Users\me\Desktop\new-tab\img'
 
     '''
     # 'walk' down the directory structure
@@ -34,6 +33,7 @@ def main():
     i = 1
     for path, dirs, files in os.walk(filepath):
         for file in files:
+            # check file endings
             if file[-4:] == '.png':
                 new_file = str(i) + '.png'
             elif file[-4:] == '.jpg':
