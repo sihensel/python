@@ -11,11 +11,10 @@ Features to add:
 '''
 
 import sys
-import curses
 import traceback
+import curses
 import json
 from datetime import datetime
-
 
 ''' DEFINE KEYBINDINGS HERE '''
 vim = False     # set vim-keybindings
@@ -123,48 +122,48 @@ class kanban:
             max = len(self.done)
 
         # get the longest string of all lists (default: 'In Progress')
-        max_len = 11
+        max_str = 11
         if self.backlog:
             for i in range(len(self.backlog)):
-                if len(self.backlog[i]['task']) > max_len:
-                    max_len = len(self.backlog[i]['task'])
+                if len(self.backlog[i]['task']) > max_str:
+                    max_str = len(self.backlog[i]['task'])
 
         if self.inProgress:
             for i in range(len(self.inProgress)):
-                if len(self.inProgress[i]['task']) > max_len:
-                    max_len = len(self.inProgress[i]['task'])
+                if len(self.inProgress[i]['task']) > max_str:
+                    max_str = len(self.inProgress[i]['task'])
 
         if self.done:
             for i in range(len(self.done)):
-                if len(self.done[i]['task']) > max_len:
-                    max_len = len(self.done[i]['task'])
+                if len(self.done[i]['task']) > max_str:
+                    max_str = len(self.done[i]['task'])
         
         # start the output
-        # print -: 3 * the max_len to cover all cloumns + 6 for the seperators
-        print((max_len * 3 + 6)*'-')
+        # print -: 3 * the max_str to cover all cloumns + 6 for the seperators
+        print((max_str * 3 + 6)*'-')
         # print spaces minus the len of the headings
-        print('BACKLOG', (max_len - 8)* ' ', '| IN PROGRESS' , (max_len - 12)* ' ', '| DONE', (max_len - 3)* ' ')
-        print((max_len * 3 + 6)*'-')
+        print('BACKLOG', (max_str - 8)* ' ', '| IN PROGRESS' , (max_str - 12)* ' ', '| DONE', (max_str - 3)* ' ')
+        print((max_str * 3 + 6)*'-')
 
         for i in range(max):
             if i >= len(self.backlog):
-                p_backlog = '-' + (max_len - 1)* ' '
+                p_backlog = '-' + (max_str - 1)* ' '
             else:
-                p_backlog = self.backlog[i]['task'] + (max_len - len(self.backlog[i]['task']))* ' '
+                p_backlog = self.backlog[i]['task'] + (max_str - len(self.backlog[i]['task']))* ' '
 
             if i >= len(self.inProgress):
-                p_inProgress = '-' + (max_len - 1)* ' '
+                p_inProgress = '-' + (max_str - 1)* ' '
             else:
-                p_inProgress = self.inProgress[i]['task'] + (max_len - len(self.inProgress[i]['task']))* ' '
+                p_inProgress = self.inProgress[i]['task'] + (max_str - len(self.inProgress[i]['task']))* ' '
 
             if i >= len(self.done):
-                p_done = '-' + (max_len - 1)* ' '
+                p_done = '-' + (max_str - 1)* ' '
             else:
-                p_done = self.done[i]['task'] + (max_len - len(self.done[i]['task']))* ' '
+                p_done = self.done[i]['task'] + (max_str - len(self.done[i]['task']))* ' '
 
             print(f'{p_backlog} | {p_inProgress} | {p_done}')
 
-        print((max_len * 3 + 6)* '-')
+        print((max_str * 3 + 6)* '-')
 
 # ------------------ CURSES ----------------------
 
@@ -199,10 +198,8 @@ class kanban:
         # draw screen
         self.stdscr.clear()
         self.stdscr.addstr(0, 0, '---KANBAN PLANNING TOOL---', curses.A_BOLD)
-        #self.stdscr.addstr(1, 0, f'Please enter a command (\'{CMD_HELP}\' for help, \'{CMD_QUIT}\' to quit).')
         self.stdscr.addstr(self.height -1, 0, f'({CMD_QUIT})uit | ({CMD_READ})ead file | ({CMD_WRITE})rite to file | ({CMD_ADD})dd task | ({CMD_DELETE})elete task')
         self.stdscr.refresh()
-#        self.stdscr.getkey()
 
         cmd = None
         while cmd not in ['q', 'Q']:
@@ -210,31 +207,95 @@ class kanban:
             
             if cmd == CMD_READ:
                 self.read_file()
+            elif cmd == 'h':
+                self.display_help()
             elif cmd == 't':
                 self.new_show()
             #else:
             #    continue
 
-    def display_help(self):#, stdscr):
+    def display_help(self):
         # display help permanently later
         
-        self.stdscr.addstr(3, 0, f'{CMD_HELP} - add new task')
+        self.stdscr.addstr(3, 0, f'h - add new task')
         self.stdscr.addstr(4, 0, f'{CMD_DELETE} - delete selected task')
-        self.stdscr.addstr(5, 0, f'{CMD_SAVE} - save kanban list to file')
-        self.stdscr.addstr(6, 0, f'{CMD_QUIT} - quit')
-        self.stdscr.addstr(8, 0, 'Press any key to continue...')
+        self.stdscr.addstr(5, 0, f'{CMD_QUIT} - quit')
+        self.stdscr.addstr(7, 0, 'Press any key to continue...')
         self.stdscr.refresh()
         self.stdscr.getkey()
 
         self.init_screen()
         #curses.wrapper(self.init_screen)
 
+    # rename to 'show' later
     def new_show(self):
-        # make size of board dependent on longest list later
+        if not self.backlog:
+            self.stdscr.addstr(3, 0, 'Read a file first!')
+        '''
+        else:
+            # make size of board dependent on longest list later
+            self.board = curses.newwin(25, 75, 3, 0)
+            self.board.border()
+            #self.board.addstr(0, 0, self.backlog[0]['task'])   # don't forget to read file first!
+            self.board.addstr(1, 2, 'BACKLOG | IN PROGRESS | DONE')
+        '''
+
+        self.sort()
+
         self.board = curses.newwin(25, 75, 3, 0)
         self.board.border()
-        #self.board.addstr(0, 0, self.backlog[0]['task'])   # don't forget to read file first!
+
+        # get the list with the most entries
+        max_list = len(self.backlog)
+        if len(self.inProgress) > max_list:
+            max_list = len(self.inProgress)
+        if len(self.done) > max_list:
+            max_list = len(self.done)
+
+        # get the longest string of all lists (default: 'In Progress')
+        max_str = 11
+        if self.backlog:
+            for i in range(len(self.backlog)):
+                if len(self.backlog[i]['task']) > max_str:
+                    max_str = len(self.backlog[i]['task'])
+
+        if self.inProgress:
+            for i in range(len(self.inProgress)):
+                if len(self.inProgress[i]['task']) > max_str:
+                    max_str = len(self.inProgress[i]['task'])
+
+        if self.done:
+            for i in range(len(self.done)):
+                if len(self.done[i]['task']) > max_str:
+                    max_str = len(self.done[i]['task'])
+        
+        # start the output
+        # print -: 3 * the max_str to cover all cloumns + 6 for the seperators
+        #print((max_str * 3 + 6)*'-')
+        # print spaces minus the len of the headings
+        #print('BACKLOG', (max_str - 8)* ' ', '| IN PROGRESS' , (max_str - 12)* ' ', '| DONE', (max_str - 3)* ' ')
+        #print((max_str * 3 + 6)*'-')
+
         self.board.addstr(1, 2, 'BACKLOG | IN PROGRESS | DONE')
+
+        for i in range(max_list):
+            if i >= len(self.backlog):
+                p_backlog = '-' + (max_str - 1)* ' '
+            else:
+                p_backlog = self.backlog[i]['task'] + (max_str - len(self.backlog[i]['task']))* ' '
+
+            if i >= len(self.inProgress):
+                p_inProgress = '-' + (max_str - 1)* ' '
+            else:
+                p_inProgress = self.inProgress[i]['task'] + (max_str - len(self.inProgress[i]['task']))* ' '
+
+            if i >= len(self.done):
+                p_done = '-' + (max_str - 1)* ' '
+            else:
+                p_done = self.done[i]['task'] + (max_str - len(self.done[i]['task']))* ' '
+
+            self.board.addstr(i + 2, 2, f'{i} | {p_backlog} | {p_inProgress} | {p_done}')
+
         self.board.refresh()
 
 
