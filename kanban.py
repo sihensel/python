@@ -11,10 +11,13 @@ Features to add:
 '''
 
 import sys
-import curses
 import traceback
 import json
 from datetime import datetime
+
+# windows:
+# python -m pip install windows-curses
+import curses
 
 
 ''' DEFINE KEYBINDINGS HERE '''
@@ -54,24 +57,28 @@ class kanban:
         self.backlog = []
         self.inProgress = []
         self.done = []
-        self.file_path = '/home/simon/python/curses-test.json'
-
+        self.file_path = 'curses-test.json'
+        self.vim = False
 
 
     # read from JSON file
-    def read_file(self, filepath='/home/simon/python/curses-test.json'):
+    def read_file(self, filepath='curses-test.json'):
 
         with open(filepath, 'r') as file:
             self.data = json.load(file)
-            self.backlog, self.inProgress, self.done = self.data[
-                'backlog'], self.data['inProgress'], self.data['done']
+            self.backlog = self.data['backlog']
+            self.inProgress = self.data['inProgress']
+            self.done = self.data['done']
+            self.vim = self.data['vim']
         
     # write data to JSON file
     def write_file(self):
-
+        # sort first
         self.sort()
 
-        self.data['backlog'], self.data['inProgress'], self.data['done'] = self.backlog, self.inProgress, self.done
+        self.data['backlog'] = self.backlog
+        self.data['inProgress'] = self.inProgress
+        self.data['done'] = self.done
         with open(self.file_path, 'w') as file:
             json.dump(self.data, file)
 
@@ -200,6 +207,7 @@ class kanban:
         self.stdscr.clear()
         self.stdscr.addstr(0, 0, '---KANBAN PLANNING TOOL---', curses.A_BOLD)
         #self.stdscr.addstr(1, 0, f'Please enter a command (\'{CMD_HELP}\' for help, \'{CMD_QUIT}\' to quit).')
+        self.stdscr.addstr(0, 1, f'height: {self.height}, width: {self.width}')
         self.stdscr.addstr(self.height -1, 0, f'({CMD_QUIT})uit | ({CMD_READ})ead file | ({CMD_WRITE})rite to file | ({CMD_ADD})dd task | ({CMD_DELETE})elete task')
         self.stdscr.refresh()
 #        self.stdscr.getkey()
