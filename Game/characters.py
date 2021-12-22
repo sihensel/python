@@ -6,7 +6,6 @@ includes the player and all NPCs (including enemies)
 # game modules
 import items
 import spells
-import text
 
 # python modules
 import time
@@ -362,83 +361,4 @@ p.add_item(items.poison)
 p.use_item(p.inventory[5])
 # __dict__ lists all attributes in a dictionary
 print(p.__dict__)
-'''
-
-'''
-# Game Loop
-while True:
-    # Main Menu
-    while True:
-        print(text.menu['main menu'])
-        keyPress = input()
-        if keyPress == 's' or keyPress == 'S':
-            break
-        else:
-            exit()
-    
-    # Character Creation
-    # Name
-    while True:
-        global playerName
-        print(text.menu['name'])
-        playerName = input()
-        break
-
-    # Race
-    while True:
-        global playerRace
-
-        print(text.menu['race'])
-        keyPress = input()
-
-        if keyPress == 'h' or keyPress == 'H':
-            playerRace = 'Human'
-            break
-        elif keyPress == 'e' or keyPress == 'E':
-            playerRace = 'Elf'
-            break
-        elif keyPress == 'd' or keyPress == 'D':
-            playerRace = 'Dwarf'
-            break
-        elif keyPress == 'o' or keyPress == 'O':
-            playerRace = 'Orc'
-            break
-        else:
-            print('Please input a valid character')
-    
-    # Class
-    while True:
-        global playerClass
-
-        print(text.menu['class'])
-        keyPress = input()
-
-        if keyPress == 'w' or keyPress == 'W':
-            playerClass = 'Warrior'
-            break
-        elif keyPress == 'r' or keyPress == 'R':
-            playerClass = 'Rogue'
-            break
-        elif keyPress == 'm' or keyPress == 'M':
-            playerClass = 'Mage'
-            break
-        else:
-            print('Please input a valid character')
-
-    while True:
-        print(text.menu['confirm'], playerRace, playerClass, 'named', playerName + '?')
-        print(text.menu['continue'])
-        keyPress = input()
-        if keyPress == 'y' or keyPress == 'Y':
-            break
-        else:
-            exit()  # needs to be replaced later
-
-    # create the player instance
-    playerCharacter = player(playerName, 100, 50, playerRace, playerClass)
-    print(playerCharacter.__dict__['name'], playerCharacter.race, playerCharacter._class)
-
-    # Start the story
-    print(text.prologue['intro'])
-
 '''
