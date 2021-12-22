@@ -1,4 +1,9 @@
 '''
+This is not (and never will be) a complete or playable game
+and rather just represents a collections of systems
+(like an inventory, fighting, levelling up, etc.) that I did for fun
+
+
 characters module
 includes the player and all NPCs (including enemies)
 '''
@@ -7,13 +12,9 @@ includes the player and all NPCs (including enemies)
 import items
 import spells
 
-# python modules
-import time
-
-from sys import exit
 
 # Class for all characters (player, enemies and NPCs)
-class character:
+class Character:
     def __init__(self, name, maxhp, maxmp, race=None, _class=None, dmg=1, arm=0, is_enemy=False):
         # set hitpoints and mana to max when initializing a new character
         self.name = name
@@ -35,9 +36,9 @@ class character:
         self.dexterity = self.level
         self.intelligence = self.level
 
-        self.inventory = ['weapon', [], 'armor', [], 'potion', []]
+        self.inventory = {'weapons': [], 'armor': [], 'potions': []}
         self.carry_weight = 0.0
-        # there needs to be some dependency to  the "max_carry_weight" value (level or strength)
+        # max_carry_weight should depend on level or strength
         self.max_carry_weight = 50.0
         self.known_spells = []
         self.equipped_weapon = None
@@ -80,7 +81,7 @@ class character:
     def death(self):
             print("{} is dead".format(self.name))
             del self
-            return self.xp  # xp should be dependant on the level of the killed character
+            return self.xp  # xp should be dependent on the level of the killed character
 
     # attack another creature
     def attack(self, target, add_damage=0):
@@ -137,20 +138,22 @@ class character:
                 self.armor = 0
         '''
 
+    '''
+    Inventory actions
+    '''
     # adds an item to the inventory
     def add_item(self, item_to_add):
-        if (self.carry_weight + item_to_add.get_item()[1]) > self.max_carry_weight:
+        if (self.carry_weight + item_to_add.get_item()['weight']) > self.max_carry_weight:
             return "Inventory full"
         else:
-            if item_to_add.__class__.__name__ == 'weapon':
-                self.inventory[1].append(item_to_add)
-            elif item_to_add.__class__.__name__ == 'armor':
-                self.inventory[3].append(item_to_add)
-            elif item_to_add.__class__.__name__ == 'potion':
-                self.inventory[5].append(item_to_add)
+            if item_to_add.__class__.__name__ == 'Weapon':
+                self.inventory['weapons'].append(item_to_add)
+            elif item_to_add.__class__.__name__ == 'Armor':
+                self.inventory['armor'].append(item_to_add)
+            elif item_to_add.__class__.__name__ == 'Potion':
+                self.inventory['potions'].append(item_to_add)
 
-            #self.inventory.append(item_to_add)
-            self.max_carry_weight += item_to_add.get_item()[1]
+            self.carry_weight += item_to_add.get_item()['weight']
 
     # removes an item from the inventory (but only the first instance, not all of it)
     # items that are currenty equipped will get unequipped first
@@ -223,8 +226,7 @@ class character:
 
 
 
-
-class player(character):
+class Player(Character):
     def __init__(self, name, maxhp, maxmp, race=None, _class=None, dmg=1, arm=0, is_enemy=False):
         super().__init__(name, maxhp, maxmp, race, _class, dmg, arm)
 
@@ -278,24 +280,24 @@ class player(character):
     
     def show_intentory(self):
         print('---WEAPONS---')
-        for item in self.inventory[1]:
-            print(item.get_item())
+        for item in self.inventory['weapons']:
+            item = item.get_item()
+            print(item)
+            print(f"{item['name']}, {item['weight']} kg, {item['value']} gold, {item['damage']} damage")
         
         print('---ARMOR---')
-        for item in self.inventory[3]:
+        for item in self.inventory['armor']:
             print(item.get_item())
         
         print('---POTIONS---')
-        for item in self.inventory[5]:
+        for item in self.inventory['potions']:
             print(item.get_item())
-    
 
 
 ''' TEST AREA '''
 
-
-p = player("Main Character", 100, 50, 1, 0)
-e = character("Dark Knight", 80, 50, 10)
+p = Player("Main Character", 100, 50, 1, 0)
+#e = Character("Dark Knight", 80, 50, 10)
 
 p.add_item(items.iron_sword)
 p.add_item(items.chain_armor)
@@ -309,8 +311,6 @@ p.show_intentory()
 
 
 '''
-e.add_item(items.iron_axe)
-e.add_item(items.plate_armor)
 e.equip_item(e.inventory[0])
 e.equip_item(e.inventory[1])
 
