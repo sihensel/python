@@ -11,7 +11,7 @@ import time, sys
 try:
     import nmap
 except ImportError:
-    print('Missing dependency detected, exiting.')
+    print('Missing dependency "python-nmap", exiting.')
     sys.exit()
 
 scanner = nmap.PortScanner()

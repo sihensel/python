@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # a simple portscanner
 # https://www.thepythoncode.com/article/make-port-scanner-python
 

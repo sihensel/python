@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # a simple tcp client using the SOCKET module (SSL for HTTPS)
 
 import socket, ssl
