@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 '''
 items module
 contains all item classes as well as the item list

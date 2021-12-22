@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 '''
 This is not (and never will be) a complete or playable game
 and rather just represents a collections of systems

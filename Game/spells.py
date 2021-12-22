@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 '''
 spells that can be casted by the player and NPCs (incliuding enemies)
 '''
