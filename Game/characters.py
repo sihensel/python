@@ -14,7 +14,6 @@ includes the player and all NPCs (including enemies)
 import items
 import spells
 
-
 # Class for all characters (player, enemies and NPCs)
 class Character:
     def __init__(self, name, maxhp, maxmp, race=None, _class=None, dmg=1, arm=0, is_enemy=False):
@@ -26,14 +25,14 @@ class Character:
         self.manapoints = maxmp
         self.damage = dmg
         self.armor = arm
-        
+
         self.level = 1
         self.xp = 0
-        # classes are not implemented yet, will be warrior/knight, archer/ranger and wizard/mage to begin with
+        # classes are not implemented yet
         # classes affect stats and levelup stats
         self.race = race
         self._class = _class
-        
+
         self.strength = self.level
         self.dexterity = self.level
         self.intelligence = self.level
@@ -45,16 +44,17 @@ class Character:
         self.known_spells = []
         self.equipped_weapon = None
         self.equipped_armor = None
-        self.equipped_arrow = None
 
         self.is_enemy = is_enemy
 
     def set_level(self, lvl):
         self.level = lvl
+
+        # change this behaviour
         self.strength = lvl
         self.dexterity = lvl
         self.intelligence = lvl
-    
+
     # !!! STILL NEEDS TO BE IMPLEMENTED PROPERLY !!!
     # something in the likes of these
     def set_stats(self):
@@ -70,20 +70,19 @@ class Character:
             self.strength = 1
             self.dexterity = 1
             self.intelligence = 3
-    
+
     def point_buy(self):
         # let it be 1 points for now, but can be more later
         points = int(self.level/10 + 1)
-        print("You have {} points. How would you like to spend them?".format(points))
+        print(f"You have {points} points. How would you like to spend them?")
         pass
         # input()
 
     # !!! STILL NEEDS TO BE IMPLEMENTED PROPERLY !!!
     # when the character dies
     def death(self):
-            print("{} is dead".format(self.name))
-            del self
-            return self.xp  # xp should be dependent on the level of the killed character
+        print(f"{self.name} is dead")
+        return self.xp  # xp should be proportional to the killed target
 
     # attack another creature
     def attack(self, target, add_damage=0):
@@ -91,26 +90,23 @@ class Character:
         if self.equipped_weapon.__class__.__name__ == "melee_weapon":
             damage = self.damage + round(0.75 * self.strength, 0) + add_damage
         elif self.equipped_weapon.__class__.__name__ == "ranged_weapon":
-            if self.equipped_arrow == None:
-                return "No arrows equipped"
-            else:
-                damage = self.damage + self.equipped_arrow.get_item()[3] + round(0.75*self.dexterity, 0) + add_damage
+            damage = self.damage + round(0.75*self.dexterity, 0) + add_damage
         else:
             damage = self.damage + add_damage
         target.get_hit(damage)
-    
+
     def cast_spell(self, spell, target=None):
         if spell.get_spell()[1] > self.manapoints:
             return "Not enough mana"
         else:
             if spell.get_spell()[3] == "healing":
-                self.hitpoints = self.hitpoints + spell.get_spell()[4] + round(0.75*self.intelligence, 0)
+                self.hitpoints += spell.get_spell()[4] + round(0.75*self.intelligence, 0)
                 if self.hitpoints > self.max_hitpoints:
                     self.hitpoints = self.max_hitpoints
             elif spell.get_spell()[3] == "damage":
                 target.get_hit(spell.get_spell()[4] + round(0.75*self.intelligence, 0))
             elif spell.get_spell()[3] == "buff":
-                self.armor = self.armor + spell.get_spell()[4] + round(0.75*self.intelligence, 0)
+                self.armor += spell.get_spell()[4] + round(0.75*self.intelligence, 0)
             elif spell.get_spell()[3] == "debuff":
                 target.get_debuff(spell.get_spell()[4] + round(0.75*self.intelligence, 0), spell.get_spell()[5])
             self.manapoints = self.manapoints - spell.get_spell()[1]
@@ -120,7 +116,7 @@ class Character:
         self.hitpoints -= int(dmg - (20/(20 + self.armor)))
         if self.hitpoints <= 0:
             self.death()
-    
+
     # character gets a debuff (currently only for attack and armor)
     def get_debuff(self, amount, duration):
         self.damage = self.damage - amount
@@ -140,91 +136,104 @@ class Character:
                 self.armor = 0
         '''
 
+
+
+
+
     '''
     Inventory actions
     '''
     # adds an item to the inventory
-    def add_item(self, item_to_add):
-        if (self.carry_weight + item_to_add.get_item()['weight']) > self.max_carry_weight:
+    def add_item(self, item: items.Item) -> str:
+        if (self.carry_weight + item.get_item()['weight']) > self.max_carry_weight:
             return "Inventory full"
         else:
-            if item_to_add.__class__.__name__ == 'Weapon':
-                self.inventory['weapons'].append(item_to_add)
-            elif item_to_add.__class__.__name__ == 'Armor':
-                self.inventory['armor'].append(item_to_add)
-            elif item_to_add.__class__.__name__ == 'Potion':
-                self.inventory['potions'].append(item_to_add)
+            if item.__class__.__name__ == 'Weapon':
+                self.inventory['weapons'].append(item)
+            elif item.__class__.__name__ == 'Armor':
+                self.inventory['armor'].append(item)
+            elif item.__class__.__name__ == 'Potion':
+                self.inventory['potions'].append(item)
 
-            self.carry_weight += item_to_add.get_item()['weight']
+            self.carry_weight += item.get_item()['weight']
+        return f'Item {item.get_item()["name"]} added to inventory'
 
-    # removes an item from the inventory (but only the first instance, not all of it)
+
+    # removes an item from the inventory
     # items that are currenty equipped will get unequipped first
-    def remove_item(self, item_to_remove):
-        for item in self.inventory:
-            if item == item_to_remove:
-                if item_to_remove == self.equipped_weapon or item_to_remove == self.equipped_armor:
-                    self.unequip_item(item_to_remove)
-                self.inventory.remove(item)
+    def remove_item(self, item: items.Item) -> str:
+        if item == self.equipped_weapon or item == self.equipped_armor:
+            self.unequip_item(item)
+        if item.__class__.__name__ == 'Weapon':
+            self.inventory['weapons'].remove(item)
+        elif item.__class__.__name__ == 'Armor':
+            self.inventory['armor'].remove(item)
+        elif item.__class__.__name__ == 'Potion':
+            self.inventory['potions'].remove(item)
 
-    # uses an item (if the item is usable)
-    def use_item(self, item_to_use):
-        if item_to_use.is_usable == True:
-            if item_to_use.get_potion()[4] == "health":
-                self.hitpoints += item_to_use.get_item()[3]
+        return f'Removed item {item.get_item()["name"]}'
+
+    # TODO rework how potions how and which parameters they have
+    def use_item(self, item: items.Potion) -> str:
+        '''
+        Uses an item and removes it aferwards
+        only potions are usable
+        '''
+        if item._is_usable:
+            if item.get_potion()['type'] == "health":
+                self.hitpoints += item.get_item()['amount']
                 if self.hitpoints > self.max_hitpoints:
                     self.hitpoints = self.max_hitpoints
-            elif item_to_use.get_potion()[4] == "mana":
-                self.manapoints += item_to_use.get_item()[3]
+            elif item.get_potion()['type'] == "mana":
+                self.manapoints += item.get_item()['amount']
                 if self.manapoints > self.max_manapoints:
                     self.manapoints = self.max_manapoints
-            elif item_to_use.get_potion()[4] == "buff":
-                self.damage = self.damage + item_to_use.get_potion()[3]
-                self.armor = self.armor + item_to_use.get_potion()[3]
-            elif item_to_use.get_potion()[4] == "poison":
-                # !!! THIS NEEDS TO BE REDONE, MORE DYNAMIC AND WITHOUT A STATIC ENEMY !!!
-                #self.attack(e, item_to_use.get_potion()[3])
-                pass
-            self.remove_item(item_to_use)
-            return "Item successfully used!"
+            elif item.get_potion()['type'] == "buff":
+                self.damage = self.damage + item.get_potion()['amount']
+                self.armor = self.armor + item.get_potion()['amount']
+            self.remove_item(item)
+            return f'Used item {item.get_item()["name"]}'
         else:
-            return "This item cannot be used!"
+            return f'Item {item.get_item()["name"]} cannot be used'
 
-    # equips an item (if the item can be equipped)
-    def equip_item(self, item_to_equip):
-        if item_to_equip.is_equippable == True:
-            if item_to_equip.get_item()[4] == "melee" or item_to_equip.get_item()[4] == "ranged":
-                self.damage = item_to_equip.get_item()[3]
-                self.equipped_weapon = item_to_equip
-            elif item_to_equip.__class__.__name__ == "armor":
-                self.armor = item_to_equip.get_item()[3]
-                self.equipped_armor = item_to_equip
-            elif item_to_equip.__class__.__name__ == "arrow":
-                self.equipped_arrow = item_to_equip
-            return "Item successfully equipped!"
+    # equips an item
+    def equip_item(self, item: items.Item) -> str:
+        if item._is_equippable:
+            if item.__class__.__name__ == 'Weapon':
+                self.damage = item.get_item()['damage']
+                self.equipped_weapon = item
+            elif item.__class__.__name__ == "Armor":
+                self.armor = item.get_item()['armor']
+                self.equipped_armor = item
+            return f'Equipped item {item.get_item()["name"]}'
         else:
-            return "This item cannot be equipped!"
+            return f'Item {item.get_item()["name"]} cannot be equipped'
 
     # unequips an item
-    def unequip_item(self, item_to_unequip):
-        if self.equipped_weapon == item_to_unequip or self.equipped_armor == item_to_unequip:
-            if item_to_unequip.__class__.__name__ == "weapon":
-                self.damage = 1
+    def unequip_item(self, item: items.Item) -> str:
+        '''
+        Unequip an item
+        '''
+        if self.equipped_weapon == item or self.equipped_armor == item:
+            if item.__class__.__name__ == "Weapon":
+                #self.damage = 1
                 self.equipped_weapon = None
-            elif item_to_unequip.__class__.__name__ == "armor":
-                self.armor = 0
+            elif item.__class__.__name__ == "armor":
+                #self.armor = 0
                 self.equipped_armor = None
-            return "Item successfully unequipped"
+            return f'Unequipped item {item.get_item()["name"]}'
         else:
-            return "This item cannot be unequipped"
-    
-    def learn_spell(self, spell_to_learn):
-        if self.level < spell_to_learn.get_spell()[6]:
-            return "You need to be at least level {} to learn this spell.".format(spell_to_learn.get_spell()[6])
-        elif spell_to_learn in self.known_spells:
-            return "Spell already known"
+            return f'Item {item.get_item()["name"]} cannot be unequipped'
+
+    def learn_spell(self, spell: spells.Spell):
+        if self.level < spell.get_spell()['level']:
+            return f'Need to be at least level {spell.get_spell()["level"]} to learn {spell.get_spell()["name"]}'
+        elif spell in self.known_spells:
+            return f'Already know {spell.get_spell()["name"]}'
         else:
             # there is no limit for known spells per level yet (maybe there never will, as it can be regulated by the number of spells available)
-            self.known_spells.append(spell_to_learn)
+            self.known_spells.append(spell)
+        return f'Learned spell {spell.get_spell()["name"]}'
 
 
 
@@ -278,7 +287,7 @@ class Player(Character):
 
         return "You died! Respawn?
         '''
-        return "You died! Load last save?"
+        return "You died!"
     
     def show_intentory(self):
         print('---WEAPONS---')
@@ -310,7 +319,8 @@ print(p.inventory)
 
 p.show_intentory()
 
-
+print(p.learn_spell(spells.weak_healing))
+print(p.learn_spell(spells.weak_healing))
 
 '''
 e.equip_item(e.inventory[0])
@@ -331,7 +341,6 @@ print(p.inventory[3])
 print(p.equipped_weapon)
 print(p.damage)
 
-p.add_item(items.stone_arrow)
 p.equip_item(p.inventory[4])
 print(e.hitpoints)
 print(p.attack(e))

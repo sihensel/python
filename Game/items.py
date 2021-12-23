@@ -29,6 +29,7 @@ class Weapon(Item):
                 'is_equippable': self._is_equippable, 'is_usable': self._is_usable,
                 'damage': self._damage, 'type': self._type}
 
+'''
 class Arrow(Item):
     def __init__(self, name, weight, value, dmg):
         super().__init__(name, weight, value, equippable=True)
@@ -39,6 +40,7 @@ class Arrow(Item):
         return {'name': self._name, 'weight': self._weight, 'value': self._value,
                 'is_equippable': self._is_equippable, 'is_usable': self._is_usable,
                 'damage': self._damage, 'type': self._type}
+'''
 
 class Armor(Item):
     def __init__(self, name, weight, value, arm):
@@ -70,9 +72,6 @@ iron_axe = Weapon("Iron Axe", 3, 75, 15, "melee")
 
 short_bow = Weapon("Short Bow", 1, 50, 8, "ranged")
 long_bow = Weapon("Long Bow", 2, 150, 12, "ranged")
-
-stone_arrow = Arrow("Stone Arrow", 0, 2, 1)
-iron_arrow = Arrow("Iron Arrow", 0, 5, 2)
 
 ''' ARMOR '''
 cloth_armor = Armor("Cloth Armor", 2, 30, 4)
