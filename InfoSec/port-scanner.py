@@ -4,8 +4,9 @@
 # https://www.thepythoncode.com/article/make-port-scanner-python
 
 import socket
+import sys
 
-host = '192.168.1.1'
+host = input('Please enter a host: ')
 
 def is_port_open(host, port):
     s = socket.socket()
@@ -13,11 +14,14 @@ def is_port_open(host, port):
     try:
         s.connect((host, port))
         s.settimeout(0.2)
-    except:
-        return False
-    else:
-        return True
+
+    # show the error and quit
+    except OSError as e:
+        print(e)
+        sys.exit(1)
+
+    return True
 
 for port in range(1, 101):
     if is_port_open(host, port):
-        print('Port ', port, 'is open!')
+        print(f'Port {port} is open!')
