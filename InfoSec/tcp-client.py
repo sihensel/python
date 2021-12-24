@@ -2,16 +2,21 @@
 
 # a simple tcp client using the SOCKET module (SSL for HTTPS)
 
-import socket, ssl
+import socket
+import ssl
 
-#host = 'time.nist.gov'
-#port = 13
 
 host = 'info.cern.ch'
 port = 80
 
-#host = 'www.horads.de'
-#port = 443
+'''
+host = 'time.nist.gov'
+port = 13
+
+host = 'www.horads.de'
+port = 443
+'''
+
 
 def tcp_client(host, port):
 
@@ -19,7 +24,8 @@ def tcp_client(host, port):
 
     if port == 13 or port == 80:
         client.connect((host, port))
-        client.sendall(('GET / HTTP/1.1\r\nHost: ' + host + '\r\n\r\n').encode())
+        client.sendall(
+            ('GET / HTTP/1.1\r\nHost: ' + host + '\r\n\r\n').encode())
         response = client.recv(1024).decode()
 
     elif port == 443:
@@ -27,13 +33,14 @@ def tcp_client(host, port):
         client_https = context.wrap_socket(client, server_hostname=host)
 
         client_https.connect((host, port))
-        client_https.send(('GET / HTTP/1.1\r\nHost: ' + host + '\r\n\r\n').encode())
+        client_https.send(
+            ('GET / HTTP/1.1\r\nHost: ' + host + '\r\n\r\n').encode())
 
         response = client_https.recv(1024).decode()
-        
+
     else:
-        return 'Error'
-    
+        return 'Error, check if port and hostname are correct'
+
     return str(response)
 
 
