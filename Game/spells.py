@@ -25,7 +25,7 @@ class Spell:
 
 ''' SPELL LIST '''
 # TODO: Effects need to be reworked
-weak_healing = Spell("Small Healing", 20, "self", "healing", 30)
-fireball = Spell("Fireball", 30, "other", "damage", 35)
+healing = Spell("Small Healing", 20, "self", "healing", 30)
+fireball = Spell("Fireball", 30, "other", "damage", 35, lvl=3)
 magic_armor = Spell("Magic Armor", 40, "self", "buff", 30, 5, 3)
 weaken = Spell("Weaken", 40, "other", "debuff", 10, 5, 3)

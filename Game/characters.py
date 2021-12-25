@@ -14,6 +14,8 @@ includes the player and all NPCs (including enemies)
 import items
 import spells
 
+# TODO change returns for print()
+
 
 class Character:
     '''
@@ -30,38 +32,38 @@ class Character:
         self.damage = dmg
         self.armor = arm
 
+        # duration of active buffs, can only have one buff at a time
+        self.buff_duration = 0
+
         self.level = 1
         self.xp = 0
-        # classes are not implemented yet
-        # classes affect stats and levelup stats
+        # TODO implement classes (Warrior, Mage, etc)
+        # classes should affect stats and levelup stats
         self.race = race
         self._class = _class
 
+        # TODO rethink this
         self.strength = self.level
         self.dexterity = self.level
         self.intelligence = self.level
 
+        # items are auto-sorted by their type
         self.inventory = {'weapons': [], 'armor': [], 'potions': []}
         self.carry_weight = 0.0
-        # max_carry_weight should depend on level or strength
+        # TODO max_carry_weight should depend on level or strength
         self.max_carry_weight = 50.0
         self.known_spells = []
         self.equipped_weapon = None
         self.equipped_armor = None
 
+        # TODO rethink how hostile NPCs work, maybe leeave it out
         self.is_enemy = is_enemy
 
-    def set_level(self, lvl):
-        self.level = lvl
-
-        # change this behaviour
-        self.strength = lvl
-        self.dexterity = lvl
-        self.intelligence = lvl
-
-    # !!! STILL NEEDS TO BE IMPLEMENTED PROPERLY !!!
-    # something in the likes of these
     def set_stats(self):
+        '''
+        Set stats according to the character level
+        '''
+        # TODO check if this is necessary (maybe for NPCs)
         if self._class == "Warrior":
             self.strength = 3
             self.dexterity = 1
@@ -76,28 +78,35 @@ class Character:
             self.intelligence = 3
 
     def point_buy(self):
-        # let it be 1 points for now, but can be more later
-        points = int(self.level/10 + 1)
+        '''
+        The player can spent attribute points on level up
+        The amount of points = level / 5 + 1
+        '''
+        # TODO implement user input
+        points = int(self.level/5 + 1)
         print(f"You have {points} points. How would you like to spend them?")
+        # input('1 - str, 2 - dex, 3 - int')
         pass
-        # input()
 
-    # !!! STILL NEEDS TO BE IMPLEMENTED PROPERLY !!!
-    # when the character dies
-    def death(self):
-        print(f"{self.name} is dead")
-        return self.xp  # xp should be proportional to the killed target
-
-    # attack another creature
-    def attack(self, target, add_damage=0):
+    def attack(self, target):
+        '''
+        Attack another character
+        If the player dies, run Player.death()
+        '''
         damage = 0
         if self.equipped_weapon.__class__.__name__ == "melee_weapon":
-            damage = self.damage + round(0.75 * self.strength, 0) + add_damage
+            damage = self.damage + round(0.75 * self.strength, 0)
         elif self.equipped_weapon.__class__.__name__ == "ranged_weapon":
-            damage = self.damage + round(0.75*self.dexterity, 0) + add_damage
+            damage = self.damage + round(0.75*self.dexterity, 0)
         else:
-            damage = self.damage + add_damage
-        target.get_hit(damage)
+            # TODO add formula for Mage characters/spells
+            damage = self.damage
+
+        info = target.get_hit(damage)
+        print(f'{self.name} attacks {target.name} for {info["damage"]} damage')
+        if info['hitpoints'] <= 0:
+            if target.__class__.__name__ == 'Player':
+                target.death()
 
     def cast_spell(self, spell, target=None):
         if spell.get_spell()[1] > self.manapoints:
@@ -120,30 +129,25 @@ class Character:
                                   spell.get_spell()[5])
             self.manapoints = self.manapoints - spell.get_spell()[1]
 
-    # calculates the recieved damage (dependent on armor)
-    def get_hit(self, dmg):
-        self.hitpoints -= int(dmg - (20/(20 + self.armor)))
-        if self.hitpoints <= 0:
-            self.death()
+    def get_hit(self, dmg: float) -> dict:
+        '''
+        Calculates the recieved damage (dependent on armor)
+        '''
+        damage_recieved = int(dmg - (20/(20 + self.armor)))
+        self.hitpoints -= damage_recieved
+        return {'hitpoints': self.hitpoints, 'damage': damage_recieved}
 
-    # character gets a debuff (currently only for attack and armor)
     def get_debuff(self, amount, duration):
-        self.damage = self.damage - amount
-        if self.damage < 0:
-            self.damage = 0
-        self.armor = self.armor - amount
-        if self.armor < 0:
-            self.armor = 0
         '''
-        if effect == "attack":
-            self.damage = self.damage - amount
-            if self.damage < 0:
-                self.damage = 0
-        elif effect == "armor":
-            self.armor = self.armor - amount
-            if self.armor < 0:
-                self.armor = 0
+        Character gets a debuff (affects damage and armor)
+        When armor or damage would reach 0, set it to 1
         '''
+        self.damage -= amount
+        if self.damage <= 0:
+            self.damage = 1
+        self.armor -= amount
+        if self.armor <= 0:
+            self.armor = 1
 
     ###################################################################
     # Inventory operations
@@ -211,41 +215,52 @@ class Character:
         else:
             return f'Item {item.get_item()["name"]} cannot be unequipped'
 
-    # TODO rethink how potions work and which parameters they have
-    def use_item(self, item: items.Potion) -> str:
+    def use_potion(self, item: items.Potion) -> str:
         '''
-        Uses an item and removes it aferwards
-        Only potions are usable (for now)
+        Uses a potion and remove it aferwards
+        Postions are the only items that can be used
         '''
-        if item._is_usable:
-            if item.get_potion()['type'] == "health":
+        if item.__class__.__name__ == 'Potion':
+            if item.get_item()['type'] == "health":
+                if self.hitpoints == self.max_hitpoints:
+                    return 'Already at maximum hitpoints'
+
                 self.hitpoints += item.get_item()['amount']
                 if self.hitpoints > self.max_hitpoints:
                     self.hitpoints = self.max_hitpoints
-            elif item.get_potion()['type'] == "mana":
+            elif item.get_item()['type'] == "mana":
+                if self.manapoints == self.max_manapoints:
+                    return 'Already at maximum manapoints'
+
                 self.manapoints += item.get_item()['amount']
                 if self.manapoints > self.max_manapoints:
                     self.manapoints = self.max_manapoints
-            elif item.get_potion()['type'] == "buff":
-                self.damage = self.damage + item.get_potion()['amount']
-                self.armor = self.armor + item.get_potion()['amount']
+            elif item.get_item()['type'] == "buff":
+                # can only have one active buff at a time
+                if self.buff_duration:
+                    return 'You already have an active buff'
+
+                self.damage = self.damage + item.get_item()['amount']
+                self.armor = self.armor + item.get_item()['amount']
+                self.buff_duration = item.get_item()['duration']
             self.remove_item(item)
             return f'Used item {item.get_item()["name"]}'
         else:
             return f'Item {item.get_item()["name"]} cannot be used'
 
-    def learn_spell(self, spell: spells.Spell):
+    def learn_spell(self, spell: spells.Spell) -> str:
+        '''
+        Only the player can learn spells
+        The player must be at least the same level as the spell
+        '''
         if self.level < spell.get_spell()['level']:
-            return (f'Need to be at least level {spell.get_spell()["level"]}'
-                    + 'to learn {spell.get_spell()["name"]}')
+            return (f'Need to be at least level {spell.get_spell()["level"]} '
+                    f'to learn {spell.get_spell()["name"]}')
         elif spell in self.known_spells:
             return f'Already know {spell.get_spell()["name"]}'
         else:
-            # there is no limit for known spells per level yet
-            # this can be regulated by the number of spells available
-            # or setting a max no. of spells that can be learnt
             self.known_spells.append(spell)
-        return f'Learned spell {spell.get_spell()["name"]}'
+            return f'Learned spell {spell.get_spell()["name"]}'
 
 
 class Player(Character):
@@ -253,21 +268,20 @@ class Player(Character):
                  race=None, _class=None, dmg=1, arm=0, is_enemy=False):
         super().__init__(name, maxhp, maxmp, race, _class, dmg, arm)
 
-    def get_xp(self, amount):
+    def gain_xp(self, amount):
         '''
         only the player can get xp
 
-        level formula: 100*level**2 - 100*level
+        level formula: (100 * (level + 1) ** 2) - 100 * (level + 1)
         lvl 1   0
         lvl 2   200
         lvl 3   600
         lvl 4   1200, etc.
         '''
         self.xp += amount
-        if self.xp >= (100 * ((self.level+1)**2) - (100*(self.level+1))):
-            print(self.level_up())
-        # show the xp gained before level up
-        return "{} xp recieved!".format(amount)
+        print(f'{amount} xp recieved')
+        if self.xp >= (100 * (self.level + 1) ** 2) - 100 * (self.level + 1):
+            self.level_up()
 
     def level_up(self):
         self.level += 1
@@ -288,13 +302,55 @@ class Player(Character):
         # TODO make this in relation to strength or a fixed value
         self.max_carry_weight = self.max_carry_weight + self.strength * 5
 
+        print('level up')
         return "Level up!"
+
+    def attack(self, target):
+        '''
+        Attack another character
+        If it dies, gain xp proportial to the level difference
+
+        if enemy is same or higher level:
+        ((100 * self.level ** 2) - 100 * self.level) * leveldiff + 1 / 7
+
+        if enemy is lower level:
+        ((100 * self.level ** 2) - 100 * self.level) * 1 / 7 / leveldiff + 1
+        '''
+        if self.equipped_weapon.__class__.__name__ == "melee_weapon":
+            damage = self.damage + round(0.75 * self.strength, 0)
+        elif self.equipped_weapon.__class__.__name__ == "ranged_weapon":
+            damage = self.damage + round(0.75*self.dexterity, 0)
+        else:
+            damage = self.damage
+
+        info = target.get_hit(damage)
+        print(f'{self.name} attacks {target.name} for {info["damage"]} damage')
+
+        if info['hitpoints'] <= 0:
+            if target.level >= self.level:
+                xp_gain = (((100 * (self.level + 1) ** 2)
+                           - 100 * (self.level + 1))
+                           * (target.level - self.level + 1) / 7)
+            else:
+                xp_gain = (((100 * (self.level + 1) ** 2)
+                           - 100 * (self.level + 1))
+                           * 1 / 7 / (self.level - target.level + 1))
+            self.gain_xp(round(xp_gain, 2))
 
     def death(self):
         '''
-        # reset level progress
-        self.xp = (100 * (self.level**2) - (100*self.level))
+        Reset part of the level progress
+        If xp > (xp for next level) / 2 -> set xp to half xp for next level
+        If xp < (xp for next level) / 2 -> set xp to start of xp for next level
         '''
+
+        if self.xp > ((100 * (self.level + 1) ** 2)
+                      - 100 * (self.level + 1)) / 2:
+            self.xp = ((100 * (self.level + 1) ** 2)
+                       - 100 * (self.level + 1)) / 2
+        elif self.xp < ((100 * (self.level + 1) ** 2)
+                        - 100 * (self.level + 1)) / 2:
+            self.xp = (100 * (self.level) ** 2) - 100 * (self.level)
         return "You died!"
 
     def show_intentory(self):
@@ -320,20 +376,17 @@ class Player(Character):
 
 ''' TEST AREA '''
 
-p = Player("Main Character", 100, 50, 1, 0)
-# e = Character("Dark Knight", 80, 50, 10)
+p = Player("Main Character", 10, 50, 1, 0)
+e = Character("Dark Knight", 10, 50, 10)
 
 p.add_item(items.iron_sword)
 p.add_item(items.chain_armor)
-p.add_item(items.small_health_potion)
-p.add_item(items.iron_axe)
 
-print(p.inventory)
+print(p.equip_item(p.inventory['weapons'][0]))
+print(p.equip_item(p.inventory['armor'][0]))
 
-p.show_intentory()
-
-print(p.learn_spell(spells.weak_healing))
-print(p.learn_spell(spells.weak_healing))
+e.equip_item(items.iron_axe)
+e.attack(p)
 
 '''
 e.equip_item(e.inventory[0])
@@ -381,7 +434,6 @@ print(p.level)
 print(p.max_hitpoints, p.max_manapoints)
 
 print(e.hitpoints)
-p.add_item(items.poison)
 p.use_item(p.inventory[5])
 # __dict__ lists all attributes in a dictionary
 print(p.__dict__)
