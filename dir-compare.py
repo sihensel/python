@@ -1,26 +1,40 @@
+#! /usr/bin/env python3
+
 '''
-small utility to check if two directories contain the same files
+Small utility to check if two directories contain the same files
+This can be usefull when manually creating backups
 '''
 
 import os
 
-path1 = r'D:\Music'
-path2 = r'E:\Music'
+source_dir = '/home/simon/studium'
+target_dir = '/home/simon/HDD/Studium'
 
-path1_files = []
-path2_files = []
+# When using Windows
+source_dir = r'D:\Music'
+target_dir = r'E:\Music'
 
-# get all files from path1
-for path, dirs, files in os.walk(path1):
+source_dir_files = []
+target_dir_files = []
+
+# get all files from source_dir
+for _, _, files in os.walk(source_dir):
     for file in files:
-        path1_files.append(file)
+        source_dir_files.append(file)
 
-# get all files from path2
-for path, dirs, files in os.walk(path2):
+# get all files from target_dir
+for _, _, files in os.walk(target_dir):
     for file in files:
-        path2_files.append(file)
+        target_dir_files.append(file)
 
-# check, if the file exists in path1
-for file in path2_files:
-    if not file in path1_files:
+print(f'The following files are NOT in the target dir {target_dir}\n')
+# check if the file exists in target_dir
+for file in source_dir_files:
+    if file not in target_dir_files:
+        print(file)
+
+print(f'\nThe following files are NOT in the source dir {source_dir}\n')
+# check if the file exists in source_dir
+for file in target_dir_files:
+    if file not in source_dir_files:
         print(file)
