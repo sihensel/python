@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 
 '''
-items module
-contains all item classes as well as the item list
-all used items will be imported from here
+Items module
+Contains all item classes as well as the item list
+All used items will be imported from here
 '''
 
+
 class Item:
-    def __init__(self, name, weight, value=0, equippable=False, usable=False, magic=False):
+    def __init__(self, name, weight,
+                 value=0, equippable=False, usable=False, magic=False):
         self._name = name
         self._weight = weight
         self._value = value
@@ -15,54 +17,48 @@ class Item:
         self._is_usable = usable
 
     def get_item(self):
-        return {'name': self._name, 'weight': self._weight, 'value': self._value,
-                'is_equippable': self._is_equippable, 'is_usable': self._is_usable}
+        return {'name': self._name, 'weight': self._weight,
+                'value': self._value, 'is_equippable': self._is_equippable,
+                'is_usable': self._is_usable}
+
 
 class Weapon(Item):
     def __init__(self, name, weight, value, dmg, _type):
         super().__init__(name, weight, value, equippable=True)
         self._damage = dmg
         self._type = _type
-    
-    def get_item(self):
-        return {'name': self._name, 'weight': self._weight, 'value': self._value,
-                'is_equippable': self._is_equippable, 'is_usable': self._is_usable,
-                'damage': self._damage, 'type': self._type}
 
-'''
-class Arrow(Item):
-    def __init__(self, name, weight, value, dmg):
-        super().__init__(name, weight, value, equippable=True)
-        self._damage = dmg
-        self._type = "arrow"
-    
     def get_item(self):
-        return {'name': self._name, 'weight': self._weight, 'value': self._value,
-                'is_equippable': self._is_equippable, 'is_usable': self._is_usable,
-                'damage': self._damage, 'type': self._type}
-'''
+        return {'name': self._name, 'weight': self._weight,
+                'value': self._value, 'is_equippable': self._is_equippable,
+                'is_usable': self._is_usable, 'damage': self._damage,
+                'type': self._type}
+
 
 class Armor(Item):
     def __init__(self, name, weight, value, arm):
         super().__init__(name, weight, value, equippable=True)
         self._armor = arm
         self._type = "armor"
-    
+
     def get_item(self):
-        return {'name': self._name, 'weight': self._weight, 'value': self._value,
-                'is_equippable': self._is_equippable, 'is_usable': self._is_usable,
-                'armor': self._armor, 'type': self._type}
-    
+        return {'name': self._name, 'weight': self._weight,
+                'value': self._value, 'is_equippable': self._is_equippable,
+                'is_usable': self._is_usable, 'armor': self._armor,
+                'type': self._type}
+
+
 class Potion(Item):
     def __init__(self, name, weight, value, amount, _type):
         super().__init__(name, weight, value, usable=True)
         self._amount = amount
         self._type = _type
-    
+
     def get_potion(self):
-        return {'name': self._name, 'weight': self._weight, 'value': self._value,
-                'is_equippable': self._is_equippable, 'is_usable': self._is_usable,
-                'amount': self._amount, 'type': self._type}
+        return {'name': self._name, 'weight': self._weight,
+                'value': self._value, 'is_equippable': self._is_equippable,
+                'is_usable': self._is_usable, 'amount': self._amount,
+                'type': self._type}
 
 
 ''' ITEM LIST '''
