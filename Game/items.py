@@ -8,15 +8,31 @@ All used items will be imported from here
 
 
 class Item:
-    def __init__(self, name, weight, value=0, equippable=False):
+    def __init__(self, name: str, weight: int, value: int = 0,
+                 equippable: bool = False):
         self._name = name
         self._weight = weight
         self._value = value
         self._is_equippable = equippable
 
-    def get_item(self):
+    def get_item(self) -> dict:
+        '''
+        return the whole object as a dict
+        '''
         return {'name': self._name, 'weight': self._weight,
                 'value': self._value, 'is_equippable': self._is_equippable}
+
+    def get_name(self) -> str:
+        return self._name
+
+    def get_weight(self) -> int:
+        return self._weight
+
+    def get_value(self) -> int:
+        return self._value
+
+    def get_is_equippable(self) -> bool:
+        return self._is_equippable
 
 
 class Weapon(Item):
@@ -30,6 +46,12 @@ class Weapon(Item):
                 'value': self._value, 'is_equippable': self._is_equippable,
                 'damage': self._damage, 'type': self._type}
 
+    def get_damage(self):
+        return self._damage
+
+    def get_type(self):
+        return self._type
+
 
 class Armor(Item):
     def __init__(self, name, weight, value, arm):
@@ -41,6 +63,12 @@ class Armor(Item):
         return {'name': self._name, 'weight': self._weight,
                 'value': self._value, 'is_equippable': self._is_equippable,
                 'armor': self._armor, 'type': self._type}
+
+    def get_armor(self):
+        return self._armor
+
+    def get_type(self):
+        return self._type
 
 
 class Potion(Item):
@@ -59,6 +87,15 @@ class Potion(Item):
                 'amount': self._amount, 'type': self._type,
                 'duration': self._duration}
 
+    def get_amount(self):
+        return self._amount
+
+    def get_type(self):
+        return self._type
+
+    def get_duration(self):
+        return self._duration
+
 
 ''' ITEM LIST '''
 ''' WEAPONS '''
@@ -67,6 +104,8 @@ iron_axe = Weapon("Iron Axe", 3, 75, 15, "melee")
 
 short_bow = Weapon("Short Bow", 1, 50, 8, "ranged")
 long_bow = Weapon("Long Bow", 2, 150, 12, "ranged")
+
+magic_wand = Weapon('Magic Wand', 1, 100, 10, 'magic')
 
 ''' ARMOR '''
 cloth_armor = Armor("Cloth Armor", 2, 30, 4)
