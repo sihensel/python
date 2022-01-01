@@ -7,6 +7,16 @@ import os
 import sys
 import argparse
 import logging
+import re
+
+
+def natural_sort_key(s, _nsre=re.compile('([0-9]+)')):
+    '''
+    Sort keys in natural order
+    See https://stackoverflow.com/a/16090640
+    '''
+    return [int(text) if text.isdigit() else text.lower()
+            for text in _nsre.split(s)]
 
 
 def rename_music(filepath: str, artist: str = ''):
@@ -44,8 +54,10 @@ def rename_music(filepath: str, artist: str = ''):
             if new_file == file:
                 continue
 
-            logger.info(f'Renaming {file} to {new_file}')
-            if not args.dry_run:
+            if args.dry_run:
+                logger.info(f'DRY-RUN Renaming {file} to {new_file}')
+            else:
+                logger.info(f'Renaming {file} to {new_file}')
                 if sys.platform == "linux" or sys.platform == "linux2":
                     os.rename(path + '/' + file, path + '/' + new_file)
                 elif sys.platform == 'win32':
@@ -59,10 +71,10 @@ def rename_images(filepath: str):
     Filenames get changed to 1.png, 2.png, 3.jpg etc.
     '''
 
-    index = 1
     for path, _, files in os.walk(filepath):
+        files = sorted(files, key=natural_sort_key)
 
-        for file in files:
+        for index, file in enumerate(files, start=1):
             # check file endings
             if file[-4:] == '.png':
                 new_file = str(index) + '.png'
@@ -77,13 +89,14 @@ def rename_images(filepath: str):
             if new_file == file:
                 continue
 
-            logger.info(f'Renaming {file} to {new_file}')
             if args.dry_run:
+                logger.info(f'DRY-RUN Renaming {file} to {new_file}')
+            else:
+                logger.info(f'Renaming {file} to {new_file}')
                 if sys.platform == "linux" or sys.platform == "linux2":
                     os.rename(path + '/' + file, path + '/' + new_file)
                 elif sys.platform == 'win32':
                     os.rename(path + '\\' + file, path + '\\' + new_file)
-            index += 1
 
 
 if __name__ == '__main__':
