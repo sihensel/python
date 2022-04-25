@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-# Script to rename multiple music or image files
+# Script to rename multiple music or image files or mod files from the Nexus
 # Only a few formats are supported (mp3, png, jpg, jpeg, the one I use)
 
 import os
@@ -70,7 +70,6 @@ def rename_images(filepath: str):
     This assumes all images are in the desired order
     Filenames get changed to 1.png, 2.png, 3.jpg etc.
     '''
-
     for path, _, files in os.walk(filepath):
         files = sorted(files, key=natural_sort_key)
 
@@ -99,6 +98,31 @@ def rename_images(filepath: str):
                     os.rename(path + '\\' + file, path + '\\' + new_file)
 
 
+def rename_mod_files(filepath: str):
+    '''
+    Rename mod files from Nexus
+    Removes the version blob in the filename so only the mod name remains
+    '''
+    for path, _, files in os.walk(filepath):
+        for file in files:
+            new_file = ''
+            for part in file.split('-'):
+                if part.isnumeric():
+                    continue
+                if '.zip' in part or '.7z' in part or '.rar' in part:
+                    if part.split('.')[0].isnumeric():
+                        part = '.' + part.split('.')[-1]
+                new_file += part
+            if args.dry_run:
+                logger.info(f'DRY-RUN Renaming {file} to {new_file}')
+            else:
+                try:
+                    logger.info(f'Renaming {file} to {new_file}')
+                    os.rename(path + '\\' + file, path + '\\' + new_file)
+                except FileExistsError:
+                    continue
+
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
@@ -106,7 +130,7 @@ if __name__ == '__main__':
         '--path',
         dest='filepath',
         type=str,
-        help='Filepath to the files to rename',
+        help='Path to the files to rename',
         default=None
     )
     parser.add_argument(
@@ -129,6 +153,12 @@ if __name__ == '__main__':
         action='store_true'
     )
     parser.add_argument(
+        '--mods',
+        dest='mods',
+        help='Remove version blobs from Nexus mod files',
+        action='store_true'
+    )
+    parser.add_argument(
         '--dry-run',
         dest='dry_run',
         help='Perform a dry-run without changing anything',
@@ -145,11 +175,11 @@ if __name__ == '__main__':
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
 
-    if not args.music and not args.images:
+    if not args.music and not args.images and not args.mods:
         logger.error('Please specify an action (--help for more info)')
         sys.exit(1)
     if not args.filepath:
-        logger.error('Please state a filepath with --filepath')
+        logger.error('Please state a filepath with --path')
         sys.exit(1)
 
     if args.music:
@@ -157,3 +187,6 @@ if __name__ == '__main__':
 
     if args.images:
         rename_images(args.filepath)
+
+    if args.mods:
+        rename_mod_files(args.filepath)
