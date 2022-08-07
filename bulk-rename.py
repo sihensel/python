@@ -19,7 +19,7 @@ def natural_sort_key(s, _nsre=re.compile('([0-9]+)')):
             for text in _nsre.split(s)]
 
 
-def rename_music(filepath: str, artist: str = ''):
+def parse_music(filepath: str, artist: str = ''):
     '''
     Rename all .mp3 files
     Remove underscores, change '---' to ' - ' and remove track numbers
@@ -51,20 +51,10 @@ def rename_music(filepath: str, artist: str = ''):
                     split = new_file.split(' - ')
                     new_file = artist + ' - ' + split[1]
 
-            if new_file == file:
-                continue
-
-            if args.dry_run:
-                logger.info(f'DRY-RUN Renaming {file} to {new_file}')
-            else:
-                logger.info(f'Renaming {file} to {new_file}')
-                if sys.platform == "linux" or sys.platform == "linux2":
-                    os.rename(path + '/' + file, path + '/' + new_file)
-                elif sys.platform == 'win32':
-                    os.rename(path + '\\' + file, path + '\\' + new_file)
+            rename_file(file, new_file, path)
 
 
-def rename_images(filepath: str):
+def parse_images(filepath: str):
     '''
     Rename all images in a directory in ascending order
     This assumes all images are in the desired order
@@ -85,20 +75,10 @@ def rename_images(filepath: str):
                 logger.warning(f'Format of file {file} is not supported')
                 continue
 
-            if new_file == file:
-                continue
-
-            if args.dry_run:
-                logger.info(f'DRY-RUN Renaming {file} to {new_file}')
-            else:
-                logger.info(f'Renaming {file} to {new_file}')
-                if sys.platform == "linux" or sys.platform == "linux2":
-                    os.rename(path + '/' + file, path + '/' + new_file)
-                elif sys.platform == 'win32':
-                    os.rename(path + '\\' + file, path + '\\' + new_file)
+            rename_file(file, new_file, path)
 
 
-def rename_mod_files(filepath: str):
+def parse_mod_files(filepath: str):
     '''
     Rename mod files from Nexus
     Removes the version blob in the filename so only the mod name remains
@@ -113,14 +93,23 @@ def rename_mod_files(filepath: str):
                     if part.split('.')[0].isnumeric():
                         part = '.' + part.split('.')[-1]
                 new_file += part
-            if args.dry_run:
-                logger.info(f'DRY-RUN Renaming {file} to {new_file}')
-            else:
-                try:
-                    logger.info(f'Renaming {file} to {new_file}')
-                    os.rename(path + '\\' + file, path + '\\' + new_file)
-                except FileExistsError:
-                    continue
+
+            rename_file(file, new_file, path)
+
+
+def rename_file(old_file: str, new_file: str, path: str):
+    new_file = new_file.replace('  ', ' ')
+    if new_file == old_file:
+        return
+
+    if args.dry_run:
+        logger.info(f'DRY-RUN Renaming {old_file} to {new_file}')
+    else:
+        logger.info(f'Renaming {old_file} to {new_file}')
+        if sys.platform == "linux" or sys.platform == "linux2":
+            os.rename(path + '/' + old_file, path + '/' + new_file)
+        elif sys.platform == 'win32':
+            os.rename(path + '\\' + old_file, path + '\\' + new_file)
 
 
 if __name__ == '__main__':
@@ -183,10 +172,10 @@ if __name__ == '__main__':
         sys.exit(1)
 
     if args.music:
-        rename_music(args.filepath, args.artist)
+        parse_music(args.filepath, args.artist)
 
     if args.images:
-        rename_images(args.filepath)
+        parse_images(args.filepath)
 
     if args.mods:
-        rename_mod_files(args.filepath)
+        parse_mod_files(args.filepath)
