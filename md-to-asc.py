@@ -74,10 +74,13 @@ def main(filename: str, delete: bool) -> None:
 
         # titles
         if line.startswith('#'):
-            if lines[index+1] == '\n':
-                new_file += line.replace('#', '=')
+            if table or code_block:
+                new_file += line
             else:
-                new_file += line.replace('#', '=') + '\n'
+                if lines[index + 1] == '\n':
+                    new_file += line.replace('#', '=')
+                else:
+                    new_file += line.replace('#', '=') + '\n'
 
         # code blocks
         elif line.startswith('```'):
@@ -90,6 +93,8 @@ def main(filename: str, delete: bool) -> None:
         # explicit linebreaks
         elif line.endswith('  \n'):
             new_file += line[:-3] + ' +\n'
+        elif line.endswith('<br>\n'):
+            new_file += line[:-5] + ' +\n'
 
         # quotes
         # NOTE nested quotes are not supported, as they don't exist in Asciidoc
@@ -149,6 +154,10 @@ def main(filename: str, delete: bool) -> None:
 
         # unordered lists
         elif re.match(r'^(- | +- |\* | +\* ).*', line):
+            # add an empty line above lists so it gets displayed properly
+            if not re.match(r'^(- | +- |\* | +\* ).*', lines[index-1]):
+                new_file += '\n'
+
             if line.startswith('- '):
                 new_file += line.replace('-', '*', 1)
             elif line.startswith(' '):
@@ -160,6 +169,10 @@ def main(filename: str, delete: bool) -> None:
 
         # ordered lists
         elif re.match(r'^ *?\d. .*', line):
+            # add an empty line above lists so it gets displayed properly
+            if not re.match(r'^ *?\d. .*', lines[index-1]):
+                new_file += '\n'
+
             if line.startswith(' '):
                 spaces = len(line) - len(line.lstrip(' '))
                 new_file += int(spaces/4+1) * '.' + line[spaces+2:]
