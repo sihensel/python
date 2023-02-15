@@ -85,27 +85,21 @@ def parse_mod_files(filepath: str):
     '''
     for path, _, files in os.walk(filepath):
         for file in files:
-            new_file = ''
-            for part in file.split('-'):
-                if part.isnumeric():
-                    continue
-                if '.zip' in part or '.7z' in part or '.rar' in part:
-                    if part.split('.')[0].isnumeric():
-                        part = '.' + part.split('.')[-1]
-                new_file += part
+            new_file = file.replace(' - ', ' ')
+            new_file = new_file.replace("'", "")
+            new_file = re.sub(r'-\d+', '', new_file)
 
             rename_file(file, new_file, path)
 
-
 def rename_file(old_file: str, new_file: str, path: str):
-    new_file = new_file.replace('  ', ' ')
+    new_file = re.sub(r'\s+', ' ', new_file)
     if new_file == old_file:
         return
 
     if args.dry_run:
-        logger.info(f'DRY-RUN Renaming {old_file} to {new_file}')
+        logger.info(f'DRY-RUN {old_file}\t->\t{new_file}')
     else:
-        logger.info(f'Renaming {old_file} to {new_file}')
+        logger.info(f'{old_file}\t->\t{new_file}')
         if sys.platform == "linux" or sys.platform == "linux2":
             os.rename(path + '/' + old_file, path + '/' + new_file)
         elif sys.platform == 'win32':
@@ -113,7 +107,6 @@ def rename_file(old_file: str, new_file: str, path: str):
 
 
 if __name__ == '__main__':
-
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--path',
@@ -157,7 +150,6 @@ if __name__ == '__main__':
 
     logging.basicConfig(
         format=(
-            '%(asctime)s %(levelname)-8s[%(lineno)s: %(funcName)s] '
             '%(message)s'
         )
     )
